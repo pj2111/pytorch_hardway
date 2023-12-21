@@ -19,6 +19,9 @@ print(X[:2])  # list of lists
 print(y[:2])  # list of 0 and 1
 print(X.shape)  # (569, 30)
 n_samples, n_features = X.shape  # refer above line for the values assigned
+# can the train_test_split work on torch arrays?
+x_torch = torch.from_numpy(X.astype(np.float32))
+y_torch = torch.from_numpy(y.astype(np.float32))
 # split the datasets
 X_train, X_test, y_train, y_test = train_test_split(X,
                                                     y,
