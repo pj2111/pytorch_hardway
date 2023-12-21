@@ -1,3 +1,6 @@
+# Weights are updated so gradients can be stored, 
+# for the data, gradients are not required as they are constants
+# model, loss functions are still the same
 import torch
 # f = w * x
 
@@ -35,7 +38,9 @@ for epoch in range(n_iters):
     l = loss(Y, y_pred)
     # get gradient ==> backward()
     l.backward()  # will calculate the grad w.r.t 'w'
-    # update weight, without requiring gradient
+    # weights are used for calculating the y_hat, which is
+    # part of the loss calculation. (review the back_propagation.drawio)
+    # update weight, with the gradients calculated by backward() method
     with torch.no_grad():
         w -= learning_rate * w.grad
     # make the accumulated grad to 0

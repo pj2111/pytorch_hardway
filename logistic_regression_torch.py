@@ -26,7 +26,9 @@ X_train, X_test, y_train, y_test = train_test_split(X,
                                                     random_state=1)
 # scale the inputs, to have 0 mean and unit variance
 sc = StandardScaler()
+# use the train set to create the scaler model
 X_train = sc.fit_transform(X_train)
+# use the fit model to transform the test set
 X_test = sc.transform(X_test)
 # make tensors from numpy arrays
 X_train = torch.from_numpy(X_train.astype(np.float32))

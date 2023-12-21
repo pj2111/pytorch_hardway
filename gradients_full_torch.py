@@ -13,8 +13,9 @@ import torch.nn as nn
 # the shape of the input is different, when used with torch models
 X = torch.tensor([[1], [2], [3], [4], [5]], dtype=torch.float32)
 Y = torch.tensor([[2], [4], [6], [8], [10]], dtype=torch.float32)
+# n_features is the cols persent in each datapoint, both inputs & targets
 n_samples, n_features = X.shape
-x_test = torch.tensor([5], 
+x_test = torch.tensor([5],
                       dtype=torch.float32)
 # model = nn.Linear(in_features=n_features, out_features=n_features)
 # w = torch.tensor(0.0, requires_grad=True, dtype=torch.float32)
@@ -68,6 +69,7 @@ for epoch in range(n_iters):
     # printing epoch
     if epoch % 1 == 0:
         [w, b] = model.parameters()
+        # observe how the weights are extracted to display
         print(f"epoch {epoch + 1}: w = {w[0][0].item():.3f}, loss: {l:.8f}")
 
 # do a final prediction
