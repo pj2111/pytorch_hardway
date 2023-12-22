@@ -9,9 +9,10 @@ import torch.nn.functional as F
 import random
 import argparse
 import pickle
-
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter(log_dir="runs/gpt")
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
+print(device)
 # hyper-parameters
 batch_size = 32
 block_size = 128
@@ -29,6 +30,7 @@ with open(file=file_path, mode='r', encoding='utf-8') as raw:
     text = raw.read()
     chars = sorted(list(set(text)))
 
+
 vocab_size = len(chars)
 
 string_to_int = {ch: i for i, ch in enumerate(chars)}
@@ -42,6 +44,14 @@ def encode(s):
 def decode(l):
     return ''.join([int_to_string[i] for i in l])
 
+
+# making the data
+data = torch.tensor(encode(text), dtype=torch.long)
+# split the traint and test data
+print(f'Data shape is: {data.shape}')
+n = int(0.8 * len(data))
+train = data[:n]
+test = data[n:]
 
 # making the batches for training and testing
 def get_batch(split: str):
@@ -129,7 +139,7 @@ class MultiHeadAttention(nn.Module):
 
     def forward(self, x):
         # # (B, T, F) -> (B, T, [h1, h1, h1, h1, h2, h2, h2, h2, h3, h3, h3, h3, h4, h4, h4, h4]
-        out = torch.cat([h(x) for h in self.heads], dim=1)
+        out = torch.cat([h(x) for h in self.heads], dim=-1)
         out = self.dropout(self.proj(out))
         return out
 
@@ -175,7 +185,7 @@ class GPTLanguageModel(nn.Module):
         super().__init__()
         self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
         self.position_embedding_table = nn.Embedding(block_size, n_embd)
-        self.blocks = nn.Sequential(*[Block(n_embd, n_head,) for _ in range(n_layers)])
+        self.blocks = nn.Sequential(*[Block(n_embd, n_head=n_head) for _ in range(n_layers)])
         self.ln_f = nn.LayerNorm(n_embd)
         self.lm_head = nn.Linear(n_embd, vocab_size)
 
@@ -193,7 +203,7 @@ class GPTLanguageModel(nn.Module):
         B, T = index.shape
         # idx and targets are both (B, T) tensor of integers
         tok_emb = self.token_embedding_table(index)  # (B, T, C)
-        pos_emb = self.position_embedding_table(torch.arange(t, device=device))  # (T, C)
+        pos_emb = self.position_embedding_table(torch.arange(T, device=device))  # (T, C)
         x = tok_emb + pos_emb  # (B, T, C)
         x = self.blocks(x)
         x = self.ln_f(x)
@@ -234,7 +244,8 @@ m = model.to(device)
 
 # create a PyTorch optimizer
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-
+# writer.add_graph(model=model, input_to_model=[vocab_size])
+# writer.close()
 for iter in range(max_iters):
     print(iter)
     if iter % eval_iters == 0:
@@ -249,10 +260,11 @@ for iter in range(max_iters):
     optimizer.zero_grad(set_to_none=True)
     loss.backward()
     optimizer.step()
+    print(torch.cuda.memory_allocated() / 1024)
 print(loss.item())
 
 
 prompt = 'Hello! Can you see me?'
 context = torch.tensor(encode(prompt), dtype=torch.long, device=device)
-generated_chars = decode(m.generate(context.unsqueeze(0), max_new_tokens=100)[0].tolist())
+generated_chars = decode(m.generate(context.unsqueeze(0), max_new_tokens=500)[0].tolist())
 print(generated_chars)
