@@ -43,13 +43,14 @@ def encode(s):
     return [string_int[ch] for ch in s]
 
 
-def decode(l): 
+def decode(l):
     return [int_string[i] for i in l]
 
 
 # making the data
 data = torch.tensor(encode(text), dtype=torch.long)
 # split the traint and test data
+print(f'Data shape is: {data.shape}')
 n = int(0.8 * len(data))
 train = data[:n]
 test = data[n:]
@@ -67,7 +68,7 @@ def get_batch(split: str):
     x = torch.stack([data[i: i + block_size] for i in ix])
     # do the same thing as X, but add 1 to blocksize so the model can
     # learn
-    y = torch.stack([data[i: i + block_size + 1] for i in ix])
+    y = torch.stack([data[i+1: i + block_size + 1] for i in ix])
     # print(x.shape, y.shape)
     x, y = x.to(device), y.to(device)
     return x, y
@@ -76,8 +77,8 @@ def get_batch(split: str):
 x_train, y_train = get_batch('train')
 # print(x_train.shape, y_train.shape)
 # print(x_train.tolist(), y_train.tolist())
-print(torch.cuda.memory_allocated()/1024)
-      
+# print(torch.cuda.memory_allocated()/1024)
+
 @torch.no_grad()
 def estimate_loss():
     "Estimate the losses for each split"
@@ -92,8 +93,10 @@ def estimate_loss():
         for k in range(eval_iters):
             # get a new random batch
             X, Y = get_batch(split)
+            # print(X)
+            # print(Y)
             # get the logits and losses from model
-            logits, loss = model(X, Y)
+            logits, loss = model.forward(X, Y)
             # assign the loss to respective index in losses array
             losses[k] = loss.item()
         # get the mean losses for train and test
@@ -119,6 +122,8 @@ class BigramLangModel(nn.Module):
         
         else:
             B, T, C = logits.shape
+            # print(logits.shape)  # torch.Size([2, 8, 81])
+            # print(targets.shape)  # torch.Size([2, 9])
             logits = logits.view(B * T, C)
             targets = targets.view(B * T)
             loss = F.cross_entropy(logits, targets)
@@ -137,16 +142,37 @@ class BigramLangModel(nn.Module):
             probs = F.softmax(logits, dim=-1)
             # sample from the distribution
             index_next = torch.multinomial(probs, num_samples=1)
-            print(index.shape)
-            print(index_next.shape)
+            # print(index.shape)
+            # print(index_next.shape)
             # append the sampled index to running index
             index = torch.cat((index, index_next), dim=1)
-            print(f'memory after {ind} loop', torch.cuda.memory_allocated()/1024)
+            # print(f'memory after {ind} loop', torch.cuda.memory_allocated()/1024)
         return index
     
 model = BigramLangModel(vocab_size)
 # print('memory after model load', torch.cuda.memory_allocated()/1024)
 m = model.to(device)
+
+# declare the optimizer
+optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+
+for iter in range(max_iters):
+    if iter % eval_iters == 0:
+        losses = estimate_loss()
+        print(f"""step: {iter},
+              train loss: {losses['train']:.3f},
+              val loss: {losses['val']:.3f}""")
+
+    # sample a batch of data
+    xb, yb = get_batch('train')
+
+    # evaluate the loss
+    logits, loss = model.forward(xb, yb)
+    optimizer.zero_grad(set_to_none=True)
+    loss.backward()
+    optimizer.step()
+
+print(loss.item())
 
 # run the model
 context = torch.zeros((1,1), dtype=torch.long, device=device)
@@ -154,6 +180,6 @@ context = torch.zeros((1,1), dtype=torch.long, device=device)
 # first look at the output for one token index
 output_tensor = m.generate(context, max_new_tokens=10)[0]
 list_output = output_tensor.tolist()
-print(len(list_output))
+# print(len(list_output))
 gen_chars = decode(list_output)
 print(gen_chars)

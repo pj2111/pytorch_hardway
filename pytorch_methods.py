@@ -168,3 +168,18 @@ B, T, C = input.shape
 output = input.view(B * T, C)
 # print(output.shape)
 # print(output[:2, :-1])
+
+b = torch.tensor([[1, 72, 68, 74, 67, 57, 72,  0],
+                  [74, 73, 58, 71,  0, 56, 54, 75]], dtype=torch.float32)
+
+d = torch.tensor([[1, 72, 68, 74, 67, 57, 72,  0, 73],
+                  [74, 73, 58, 71,  0, 56, 54, 75, 58]], dtype=torch.float32)
+
+# print(b.shape)
+# print(d.shape)
+
+print(b.view(2 * 8))
+print(d.view(2 * 9))
+
+ce = F.cross_entropy(b.view(2*8), d.view(2*9))
+print(ce)
