@@ -1,2 +1,4 @@
 /data
 /runs
+*.log
+.ipynb_checkpoints/

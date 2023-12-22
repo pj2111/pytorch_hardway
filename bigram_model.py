@@ -1,19 +1,27 @@
 # Script introduces the many concepts of training the GPT model using a toy nn model
 # Model simply predicts the next character
+import logging
+# logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+import os
+
+import os 
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:1024"  # doesn't help with the OOM error
+
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+print(device)
 
 # hyper-parameters
 block_size = 8
-batch_size = 4
+batch_size = 2
 max_iters = 100
 eval_interval = 20
 learning_rate = 3e-4
 eval_iters = 250
-file_path = "D:\gitFolders\pytorch_hardway\data\wizard_of_oz.txt"
+file_path = "D:\gitFolders\pytorch_hardway\data\wizard_of_oz.txt" if device == 'cpu' else "/home/kamal/gitfolders/pytorch_hardway/data/wizard_of_oz.txt" 
 # file processing to get text data
 with open(file=file_path,
           mode='r',
@@ -21,8 +29,10 @@ with open(file=file_path,
     text = f.read()
 # getting the different characters used in the text-corpus
 chars = sorted(set(text))
+# print(chars)
 # getting the total vocab_size, that is the number of unique characters
 vocab_size = len(chars)
+# print('vocab size', vocab_size / 3)
 
 string_int = {ch: i for i, ch in enumerate(chars)}
 int_string = {i: ch for i, ch in enumerate(chars)}
@@ -64,7 +74,10 @@ def get_batch(split: str):
 
 
 x_train, y_train = get_batch('train')
-
+# print(x_train.shape, y_train.shape)
+# print(x_train.tolist(), y_train.tolist())
+print(torch.cuda.memory_allocated()/1024)
+      
 @torch.no_grad()
 def estimate_loss():
     "Estimate the losses for each split"
@@ -100,7 +113,7 @@ class BigramLangModel(nn.Module):
 
     def forward(self, index, targets=None):
         logits = self.token_embedding_table(index)
-
+        # print('logits', logits)
         if targets is None:
             loss = None
         
@@ -114,23 +127,33 @@ class BigramLangModel(nn.Module):
 
     def generate(self, index, max_new_tokens):
         # index is (B, T) array of indices in current context
-        for _ in range(max_new_tokens):
+        # print('memory before iteration', torch.cuda.memory_allocated()/1024)
+        for ind in range(max_new_tokens):
             # ask for the prediction from forward method
             logits, loss = self.forward(index)
             # take only the last time step
             logits = logits[:, -1, :]
-            # apply softmax to get probabilities
+            # apply softmax to get probabilities, observe the dim argument
             probs = F.softmax(logits, dim=-1)
             # sample from the distribution
             index_next = torch.multinomial(probs, num_samples=1)
+            print(index.shape)
+            print(index_next.shape)
             # append the sampled index to running index
-            index = torch.cat((index, index_next), dim=0)
+            index = torch.cat((index, index_next), dim=1)
+            print(f'memory after {ind} loop', torch.cuda.memory_allocated()/1024)
         return index
     
 model = BigramLangModel(vocab_size)
+# print('memory after model load', torch.cuda.memory_allocated()/1024)
 m = model.to(device)
 
 # run the model
 context = torch.zeros((1,1), dtype=torch.long, device=device)
-gen_chars = decode(m.generate(context, max_new_tokens=250)[0].tolist())
+# print(vocab_size) 
+# first look at the output for one token index
+output_tensor = m.generate(context, max_new_tokens=10)[0]
+list_output = output_tensor.tolist()
+print(len(list_output))
+gen_chars = decode(list_output)
 print(gen_chars)
