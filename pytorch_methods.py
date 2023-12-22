@@ -145,7 +145,14 @@ r_in = nn.Embedding(num_embeddings=vocab_size,
 data_ind = torch.tensor([1, 5, 6, 8])
 e_out = r_in(data_ind)
 print(e_out)
-
+print(e_out.shape)
+"""
+tensor([[-0.5251, -2.2980, -1.2629, -0.2184, -0.3236, -1.1250],
+        [-2.0372, -0.7762,  1.1529, -1.7969,  0.3080, -0.4566],
+        [ 0.3185,  1.7108, -0.4360,  1.5348, -1.1450,  0.2744],
+        [-0.0502, -1.8797,  1.3616, -0.0599, -0.4435,  0.0271]],
+       grad_fn=<EmbeddingBackward0>)
+"""
 # Matrix Multiplication
 a = torch.tensor([[1, 2], [3, 4], [5, 6]])
 b = torch.tensor([[7, 2, 9], [6, 3, 4]])
@@ -159,5 +166,5 @@ b = torch.tensor([[7, 2, 9], [6, 3, 4]])
 input = torch.rand((3, 8, 10))
 B, T, C = input.shape
 output = input.view(B * T, C)
-print(output.shape)
-print(output[:2, :-1])
+# print(output.shape)
+# print(output[:2, :-1])
