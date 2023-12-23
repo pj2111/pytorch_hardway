@@ -1,9 +1,16 @@
 # 1) Design the model (input, output size and forward pass)
+    # Input, target data must have shape of m x n, i.e both must have features
+    # Model needs to designed by keeping the feature length in mind, as these will be processed
 # 2) construct loss and optimizer
+    # torch.nn module contains the variety of Loss Criterions
+    # torch.optim module contains various optimizers
 # 3) training loop
 #  - forward pass: compute prediction
-#  - backward pass: compute gradient 
-#  - update weights
+    # loss criterion is called with the target and predicted values
+#  - backward pass: compute gradient & update weights
+    # optimizers will take care of gradient, weight updates of the model
+    # remember to pass optimizer.zero_grad() for the gradient to be 
+    # reset
 
 import torch
 import torch.nn as nn
@@ -40,8 +47,8 @@ model = LinearRegression(n_features, n_features)
 # gradient of the loss (MSE)
 # MSE = (1/N) * (w*x - y)**2
 # dJ/dw = (1/N) * 2x * (w*x - y)
-def gradient(x, y, y_pred):
-    return np.dot(2 * x, y_pred - y).mean()
+# def gradient(x, y, y_pred):
+#    return np.dot(2 * x, y_pred - y).mean()
 
 
 loss = nn.MSELoss()
