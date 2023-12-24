@@ -42,6 +42,8 @@ y_test = torch.from_numpy(y_test.astype(np.float32))
 y_train = y_train.view(y_train.shape[0], 1)
 y_test = y_test.view(y_test.shape[0], 1)
 
+# model = nn.Linear(in_features=n_features, out_features=1)
+# this will create enormous numbers
 
 # 1 Build model from scratch
 class LogRegression(nn.Module):
@@ -56,7 +58,7 @@ class LogRegression(nn.Module):
 
 
 model = LogRegression(n_features)
-
+print(model.linear.weight.dtype)
 # loss and optimizer
 lr = 0.01
 criterion = nn.BCELoss()

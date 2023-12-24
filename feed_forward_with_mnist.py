@@ -40,7 +40,8 @@ test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size,
 
 examples = iter(train_loader)
 samples, labels = next(examples)
-print(samples.shape, labels.shape)  # torch.Size([100, 1, 28, 28]) torch.Size([100])
+print(samples.shape, labels.shape) 
+# torch.Size([100, 1, 28, 28]) torch.Size([100])
 
 for i in range(8):
     plt.subplot(2, 4, i+1)

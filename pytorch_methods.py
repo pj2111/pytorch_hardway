@@ -2,10 +2,13 @@ import torch
 import torch.nn as nn
 import numpy as np
 import time
+from torch.utils.data import Dataset, DataLoader
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # print(device)
-
-# zeros
+# zeros, ones, rand, empty, randint, linspace, eye, 
+# multinomial, cat, arange, unsqueeze(learn), 
+# stack, triu, tril, transpose, softmax, 
+# Embedding, Linear functions
 a = torch.zeros(1, 2)  # 1 row and 2 cols 
 # print(a)
 
@@ -30,7 +33,7 @@ e = torch.randint(low=10, high=100,
 f = torch.linspace(start=0, end=13, steps=4, dtype=torch.int32)  # linear space between 0 to 7 with steps of 3
 # can control the type of the output without worrying about type error
 # print(f)
-
+# can change the dimensions of linspace data with view
 # eye or identity matrix
 g = torch.eye(n=5, m=5)
 # print(g)
@@ -53,6 +56,8 @@ nm = np.multiply(h, i)
 
 # embeddings, torch.stack, torch.multinomial, torch.tril, torch.triu
 # input.T / input.transpose, nn.Linear, torch.cat, F.softmax
+# unsqueeze and squeeze ( so squeeze(-1) would remove the last dimension and unsqueeze(-1) 
+# would add a new dimension after the current last.)
 # (show all the examples of functions/methods with pytorch docs)
 j = torch.tensor([0.2, 0.3, 0.5])
 samples = torch.multinomial(input=j, num_samples=10, replacement=True)
@@ -140,7 +145,7 @@ print(s_out)
 vocab_size = 80
 embedding_dim = 6
 
-r_in = nn.Embedding(num_embeddings=vocab_size, 
+r_in = nn.Embedding(num_embeddings=vocab_size,
                      embedding_dim=embedding_dim)
 data_ind = torch.tensor([1, 5, 6, 8])
 e_out = r_in(data_ind)
@@ -183,3 +188,82 @@ print(d.view(2 * 9))
 
 ce = F.cross_entropy(b.view(2*8), d.view(2*9))
 print(ce)
+
+# some additional home work on cat and stack
+part1 = torch.rand(size=(2, 2))  # 2 row / 2 col matrix
+part2 = torch.rand(size=(2, 1))  # 2 row 1 col matrix
+part3 = torch.rand(size=(1, 2))  # 1 row 2 col matrix
+
+cat2 = torch.cat((part1, part3))  # will go through 
+print(cat2)
+# cat1 = torch.cat((part1, part2))  # will inform the expected dimensions are not present
+
+part4 = torch.rand((4, 3))
+part5 = torch.randint(high=100, low=10, size=(4, 3))
+
+partstack = torch.stack([part4, part5])
+
+print(partstack.shape)  # 2 tensors of 4 rows and 3 cols 
+
+# partstackx0 = torch.stack(part4, part5)  # will throw syntax-error 
+
+# print(partstackx0.shape)  # 2 tensors of 4 rows and 3 cols
+
+catparts_dim0 = torch.cat((part4, part5), dim=0)
+catparts_dim1 = torch.cat((part4, part5), dim=1)
+
+# print(catparts_dim0.shape)  # 8 rows and 3 cols
+# key is to expect the how the dimension will change
+# print(catparts_dim1.shape)  # 4 rows and 6 cols
+
+part9 = torch.linspace(start=10, end=20, steps=30)
+
+print(part9.shape)
+
+# print(part9.view(size=(10,3)))
+# print(part9.view(size=(5,6)))
+# print(part9.view(size=(3,10)))
+# print(part9.view(size=(4,10)))  # RuntimeError: shape '[4, 10]' is invalid for input of size 30
+
+print(part9.view(size=(-1, 3)))
+# print(part9.view(size=(-1, 4)))  # will be invalid
+
+class WineDataset(Dataset):
+    # just use the init to load the data into the torch objects
+    def __init__(self, x_data, y_data):
+        self.x = torch.from_numpy(x_data)
+        self.y = torch.from_numpy(y_data)
+        self.n_samples = x_data.shape[0]
+
+    def __getitem__(self, index):
+        return self.x[index], self.y[index]
+
+    def __len__(self):
+        return self.n_samples
+
+wine_ds = WineDataset(x_data=x_data, y_data=y_data)
+winedataloader = DataLoader(wine_ds, shuffle=True, batch_size=3)
+
+batch1 = next(iter(winedataloader))
+print(batch1)  # List of tensor objects
+
+# need to include the transforms 
+
+# pytorch semantics
+# Each tensor has at least one dimension.
+
+# When iterating over the dimension sizes, starting at the trailing dimension, the dimension sizes must either be equal, one of them is 1, or one of them does not exist.
+
+x = torch.empty(5, 7, 8)
+y = torch.empty(5, 7, 8)  # tensor of same shapes are broadcastable
+
+x = torch.empty((0, ))
+x = torch.empty(2, 2)
+# cannot broadcast as one of the dimension is not 1
+
+a = torch.rand((3, 3, 1))
+b = torch.rand((3, 1))
+
+# 1st trailing dimension: both have size 1
+# 2nd trailing dimension: a size == b size
+# 3rd trailing dimension: b dimension doesn't exist 
