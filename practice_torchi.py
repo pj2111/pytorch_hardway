@@ -1,183 +1,165 @@
-import torch
 import numpy as np
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data import DataLoader, Dataset
 from sklearn import datasets
+import torch
+import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
+import torch.nn.functional as F
 
+device = 'cpu' if not torch.cuda.is_available() else 'cuda'
 
-# Practice the methods (did some additional work on understanding the methods)
-# Explore sklearn data
-# load data into torch
-# create data loader and loop through batches
+a = torch.zeros(3, 2)
+# print(a.shape)
 
-a = torch.zeros(1, 2)  # 1 row 2 cols
-#print(a)
+asq = torch.squeeze(a, dim=0)  # expected row dimension to be removed...
+# print(asq)  # did not happen
 
-b = torch.ones(1, 2)  # 1 row 2 cols
-#print(b.shape)
+asu = torch.unsqueeze(a, dim=0)
+# print(asu.shape)
 
-c = torch.rand(2, 5)  # 2 row 5 cols
-#print(c)
+b = torch.ones(3, 2)
+# print(b.shape)
 
-d = torch.empty(4, 5)  # 4 row 5 cols
+c = torch.rand(3, 2)
+# print(c.shape)
 
-e = torch.randint(low=0, high=10, size=(2, 5))
+# print((a + b + c).shape)
+
+d = torch.randint(low=5, high=68, size=(4, 3, 2))
+# print(d)
+
+e = d.view(-1, 2)  # 12 r and 2 c
 # print(e)
 
-f = torch.linspace(start=5, end=30, steps=10)  # 0 row 10 cols
-# print(f.shape)
+f = d.view(2, -1)  # 2 r and 12 c
+# print(f)
 
-# can we shape the linspace tensors
-fv = f.view(-1, 2)
-# print(fv.shape)
+# g = d.view(3, -1, -1) 
 
-# unsqueeze the a tensor
-a = torch.zeros(3, 2)  # 3 row 2 cols
-a = a.unsqueeze(dim=1)
-# print(a)
+g = d.view(3, -1, 2)
+# print(g.shape)  # 3 mat of 3 r and 3 c
+# print(g[0].T)  # 2 r and 4 c
 
-e = torch.eye(n=5)  # 5 X 5 output
+i = torch.arange(3, 28, 3)  # how many elements?
+j = torch.arange(4, 29, 3)  # how many elements?
+k = torch.arange(5, 30, 3)  # how many elements?
 
-# print(e.shape)
+# print(torch.stack((i, j, k)))
 
-g = torch.tensor([2, 5, 8, 9, 3, 6, 7], dtype=torch.float16)
-# print(g.shape)
-ug = torch.unsqueeze(g, 0)
-# print(ug.shape)
-ug1 = torch.unsqueeze(g, 1)
-# print(ug1.shape)
-# ug2 = torch.unsqueeze(g, 2)  # won't work, throws index error
-# print(ug2)
+# bring in the datasets
+regress = datasets.make_regression(n_samples=50,
+                                   n_features=5,
+                                   n_targets=1,
+                                   random_state=123)
 
-l = g.shape[0]
-prob = torch.tensor([0.5, 0.2, 0.3])
-# draws the number as per the probability
-multn = torch.multinomial(prob, num_samples=l, replacement=True)
-# print(multn)
+# print(regress)
 
-part1 = torch.rand(size=(2, 2))  # 2 row / 2 col matrix
-part2 = torch.rand(size=(2, 1))  # 2 row 1 col matrix
-part3 = torch.rand(size=(1, 2))  # 1 row 2 col matrix
+# load into torch
 
-cat2 = torch.cat((part1, part3))  # will go through 
-# print(cat2)
-# cat1 = torch.cat((part1, part2))  # will inform the expected dimensions are not present
+x_data, y_data = regress
 
-part4 = torch.rand((4, 3), dtype=torch.float16)
-part5 = torch.randint(high=100, low=10, size=(4, 3), dtype=torch.float16)
+x_torch = torch.from_numpy(x_data.astype(np.float32))
+y_torch = torch.from_numpy(y_data.astype(np.float32))
 
-partstack = torch.stack([part4, part5])
+# print(x_torch.shape)  # 50, 5
+# print(y_torch.shape)  # 50, 2
 
-# print(partstack.shape)  # 2 tensors of 4 rows and 3 cols 
+# break it into batches
+x_batch = x_torch.view(10, 5, 5)
+y_batch = y_torch.view(10, 5, -1)
+# print(y_batch.shape)
+# print(x_batch.shape)
 
-# partstackx0 = torch.stack(part4, part5)  # will throw syntax-error 
+# print(y_batch[0])
 
-# print(partstackx0.shape)  # 2 tensors of 4 rows and 3 cols
+# print(datasets.get_data_home())
 
-catparts_dim0 = torch.cat((part4, part5), dim=0)
-catparts_dim1 = torch.cat((part4, part5), dim=1)
+# mul_x_y = x_batch[0] * y_batch[0]  # will error out
 
-# print(catparts_dim0.shape)
-# print(catparts_dim1.shape)
-embed_matrix = torch.tensor([[2, 6, 8, 7, 43],
-                             [9, 86, 78, 90, 62]],
-                             dtype=torch.float32)
-part7 = torch.tensor([1, 2, 5, 6])
-part8 = torch.tensor([1, 2, 5, 6], dtype=torch.float32)
-em = nn.Embedding(num_embeddings=8,
-                  embedding_dim=6)
-# print(em(part7))
+# print(mul_x_y)
+# what should be the weight shape? unable to visualise 
+# as there is no practice 
 
-lin = nn.Linear(in_features=4, out_features=1)
-# print(lin(part8))
-lin2 = nn.Linear(in_features=4, out_features=2)
-# print(lin2(part8))
+linear = nn.Linear(in_features=5, out_features=1)
+# print(linear.weight.shape)  # shape of 2r 5c 
+# print(linear.weight)  # shape of 2r 5c 
 
-part9 = torch.linspace(start=10, end=20, steps=30)
+# how feed the data to model
 
-# print(part9.shape)
+batch_lin0 = linear(x_batch[0])
 
-# print(part9.view(size=(10,3)))
-# print(part9.view(size=(5,6)))
-# print(part9.view(size=(3,10)))
-# print(part9.view(size=(4,10)))  # RuntimeError: shape '[4, 10]' is invalid for input of size 30
+# print(batch_lin0.shape)  # expecting 5r 2c output
 
-# print(part9.view(size=(-1, 3)))
-# print(part9.view(size=(-1, 4)))  # will be invalid
+sx = F.softmax(batch_lin0, dim=0)
 
-# working on data loader
-regression_ds = datasets.load_wine()
-x_data, y_data = regression_ds['data'], regression_ds['target']
+# print(sx.shape)
+# print(sx)
 
-# print(x_data.shape)
-# print(y_data.shape)
+criterion = torch.nn.MSELoss()
 
-# data is ready
-class WineDataset(Dataset):
-    # just use the init to load the data into the torch objects
-    def __init__(self, x_data, y_data):
-        self.x = torch.from_numpy(x_data.astype(np.float32))
-        self.y = torch.from_numpy(y_data.astype(np.float32))
-        self.y = self.y.view(y_data.shape[0], 1)
-        self.n_samples = x_data.shape[0]
+# loss = criterion(sx, y_batch[0])
+
+# print(loss)
+# loss.backward()
+
+optimizer = torch.optim.SGD(linear.parameters(), lr=0.01)
+# optimizer.step()
+# optimizer.zero_grad()
+# print(linear.weight)
+
+# epoch = 50
+# for epo in range(epoch):
+    # for ind, bt in enumerate(x_batch):
+        # y_p_bt = linear(bt)
+        # loss_bt = criterion(y_p_bt, y_batch[ind])
+        # loss_bt.backward()
+        # optimizer.step()
+        # optimizer.zero_grad()
+    # print(f"loss: {loss_bt.item():.3f}")
+
+
+data = datasets.load_digits()
+# print(data.keys())
+data = data['data']
+# target = data['target']
+
+
+class ToTensor:
+    def __call__(self, data_points):
+        print(data_points)
+        data = data_points[0]
+        target = data_points[1]
+        return torch.from_numpy(data.astype(np.float32)), torch.tensor(target, 
+                                                                       dtype=torch.float32)
+
+
+class MulTransform:
+    def __init__(self, factor):
+        self.factor = factor
+
+    def __call__(self, samples):
+        inputs, targets = samples
+        inputs *= self.factor
+        return inputs, targets
+
+
+class DigitDataset(Dataset):
+    def __init__(self, transform=None) -> None:
+        self.data_set = datasets.load_digits()
+        self.data = self.data_set['data']
+        self.target = self.data_set['target']
+        self.n_samples = self.data.shape[0]
+        self.transform = transform
 
     def __getitem__(self, index):
-        return self.x[index], self.y[index]
+        sample = self.data[index], self.target[index]
+        if self.transform:
+            sample = self.transform(sample)
+
+        return sample
 
     def __len__(self):
         return self.n_samples
 
+dd = DigitDataset(transform=ToTensor())
 
-wine_ds = WineDataset(x_data=x_data, y_data=y_data)
-winedataloader = DataLoader(wine_ds, shuffle=True, batch_size=3)
-
-batch1 = next(iter(winedataloader))
-# print(batch1)
-
-# parameters
-n_features, n_samples = wine_ds.x.shape[1], len(wine_ds)
-learn_rate = 0.01
-epoch = 5
-
-# simple model is ready
-class Lnreg(nn.Module):
-   
-    def __init__(self, n_inputs):
-        super().__init__()
-        self.lin = nn.Linear(n_inputs, 1)
- 
-    def forward(self, x):
-        y_pred = torch.sigmoid(self.lin(x))
-        return y_pred
-
-
-model = Lnreg(n_inputs=n_features)
-# create the criterion
-criterion = nn.MSELoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=learn_rate)
-
-# trackers 
-running_loss = 0.0
-running_corrects = 0
-# training loop
-for ep in range(epoch):
-    # send all the data into the model 
-    for ind, batch in enumerate(iter(winedataloader)):
-        # print(f"working on the {ind + 1} batch")
-        # print(type(batch[0].dtype))
-        outputs = model(batch[0])
-        # print(outputs)
-        # predict after the model weights training
-        # print(batch[1])
-        loss = criterion(outputs, batch[1])
-
-        # backward
-        loss.backward()
-        optimizer.step()
-        optimizer.zero_grad()
-    print(f"loss output of epoch {ep} is {loss.item():.3f}")
-
-with torch.no_grad():
-    y_pred = model(torch.tensor(x_data.astype(np.float32)))
-    print(y_pred)
+print(dd[0])

@@ -6,9 +6,10 @@ from torch.utils.data import Dataset, DataLoader
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # print(device)
 # zeros, ones, rand, empty, randint, linspace, eye, 
-# multinomial, cat, arange, unsqueeze(learn), 
+# multinomial, cat, arange, unsqueeze(learn), masked_fill 
 # stack, triu, tril, transpose, softmax, 
-# Embedding, Linear functions
+# Embedding, Linear functions, data loading
+# view, broadcasting semantics, transforms
 a = torch.zeros(1, 2)  # 1 row and 2 cols 
 # print(a)
 
@@ -84,8 +85,8 @@ r = torch.cat((p, q), dim=1)  # tensor 1 is in 2nd position, dim = 0 / 1 will wo
 # print(r)
 
 # stack expects each tensor to be equal size, but got [5] at entry 0 and [4] at entry 3
-s1 = torch.arange(0, 5)
-s2 = torch.arange(1, 6)
+s1 = torch.arange(0, 5)  # 1 r and 5 c
+s2 = torch.arange(1, 6)  # 1 r and 5 c
 s3 = torch.arange(2, 7)
 s4 = torch.arange(4, 9)
 s5 = torch.stack((s1, s2, s3, s4))
@@ -171,6 +172,9 @@ b = torch.tensor([[7, 2, 9], [6, 3, 4]])
 input = torch.rand((3, 8, 10))
 B, T, C = input.shape
 output = input.view(B * T, C)
+
+# g = d.view(3, -1, -1)  # only one dimension can be inferred, runtime error  
+
 # print(output.shape)
 # print(output[:2, :-1])
 

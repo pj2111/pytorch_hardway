@@ -32,7 +32,8 @@ class Winedataset(Dataset):
     def __len__(self):
         return self.n_samples
 
-
+# the transforms class have to call the data through the dataset only
+# WineDataset(transform=ToTensor)
 class ToTensor:
     def __call__(self, sample):
         inputs, targets = sample
