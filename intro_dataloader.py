@@ -57,6 +57,8 @@ n_iteration = math.ceil(total_samples / 4)  # There will 10 iters if there are 4
 # print(total_samples, n_iteration)
 
 for epoch in range(num_epochs):
+    # when you are enumerating the data & updating the weights 
+    # DataLoader object has to be used. Not the Data Iterator
     for i, (inputs, labels) in enumerate(wineloader):
         # forward backward and update
         if (i + 1) % 5 == 0:

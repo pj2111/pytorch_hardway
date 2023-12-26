@@ -102,7 +102,8 @@ tu = torch.triu(torch.ones(3, 3) * torch.tensor([5]))  # What happens when
 tu_try = torch.triu(torch.ones(3, 3) * torch.tensor(5))  # What happens when 
 # another tensor with None size is involved? 
 # print(tu_try)
-
+# There has to be a base tensor, on which a mask is placed, and where the conditions 
+# return True, update the value
 maskout = torch.zeros(5, 5).masked_fill(torch.tril(torch.ones(5, 5)) == 0,
                                         float('-inf'))
 # print(maskout, 'maskout')
@@ -110,6 +111,10 @@ maskout = torch.zeros(5, 5).masked_fill(torch.tril(torch.ones(5, 5)) == 0,
 
 # print(torch.exp(torch.tensor([0])), 'mask out')
 # print(torch.exp(torch.tensor([float('-inf')])), 'mask out')
+
+# masked = torch.masked_fill(torch.zeros(5, 5), make_triu == 0, torch.tensor(67))
+#  * (Tensor input, Tensor mask, Tensor value)
+# print(masked)
 
 input = torch.zeros(2, 3, 4)
 # print(input.shape, 'input')
@@ -220,7 +225,7 @@ catparts_dim1 = torch.cat((part4, part5), dim=1)
 # key is to expect the how the dimension will change
 # print(catparts_dim1.shape)  # 4 rows and 6 cols
 
-part9 = torch.linspace(start=10, end=20, steps=30)
+part9 = torch.linspace(start=10, end=20, steps=30)  # steps is required args, and ensure it is more than 1, else it will form a Size[1] tensor
 
 print(part9.shape)
 

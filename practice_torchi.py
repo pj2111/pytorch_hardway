@@ -1,165 +1,197 @@
-import numpy as np
-from sklearn import datasets
+# zeros, ones, rand, empty, randint, linspace, eye, 
+# multinomial, cat, arange, unsqueeze(learn), masked_fill 
+# stack, triu, tril, transpose, softmax, 
+# Embedding, Linear functions, data loading
+# view, broadcasting semantics, transforms
+
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
 import torch.nn.functional as F
+from torch.utils.data import DataLoader, Dataset
+from sklearn import datasets
+import numpy as np
+from typing import Any
+# think of various matrix operations
+# a) Add b) Subtract c) Multiply d) Divide
 
-device = 'cpu' if not torch.cuda.is_available() else 'cuda'
+a = torch.zeros((3, 1))
 
-a = torch.zeros(3, 2)
-# print(a.shape)
+# print(a)
 
-asq = torch.squeeze(a, dim=0)  # expected row dimension to be removed...
-# print(asq)  # did not happen
+b = torch.ones((3, 3))
 
-asu = torch.unsqueeze(a, dim=0)
-# print(asu.shape)
+# print(b)
 
-b = torch.ones(3, 2)
-# print(b.shape)
+# c = a @ b  #  mat1 and mat2 shapes cannot be multiplied (3x1 and 3x3)
+c = a * b
+# print(c)
 
-c = torch.rand(3, 2)
-# print(c.shape)
+d = torch.rand((4, 3), dtype=torch.float16)
 
-# print((a + b + c).shape)
-
-d = torch.randint(low=5, high=68, size=(4, 3, 2))
 # print(d)
 
-e = d.view(-1, 2)  # 12 r and 2 c
+e = torch.triu(input=d)
+
 # print(e)
 
-f = d.view(2, -1)  # 2 r and 12 c
+f = torch.tril(input=d)
+
 # print(f)
 
-# g = d.view(3, -1, -1) 
+g = torch.transpose(input=d, dim0=0, dim1=1)
+# print(g)
+# print(g.shape)
 
-g = d.view(3, -1, 2)
-# print(g.shape)  # 3 mat of 3 r and 3 c
-# print(g[0].T)  # 2 r and 4 c
+gt = d.T
+# print(gt.shape)
 
-i = torch.arange(3, 28, 3)  # how many elements?
-j = torch.arange(4, 29, 3)  # how many elements?
-k = torch.arange(5, 30, 3)  # how many elements?
+ls = torch.linspace(start=0, end=6, steps=10, dtype=torch.float16)
+# print(ls)
+vs = ls.view((-1, 2))
+# print(vs)
+eye = torch.eye(n=5)
+# print(eye)
 
-# print(torch.stack((i, j, k)))
+us = vs.unsqueeze(dim=0)
+# print(us.shape)
+us = vs.unsqueeze(dim=1)
+# print(us.shape)
+us = vs.unsqueeze(dim=2)
+# print(us.shape)
 
-# bring in the datasets
-regress = datasets.make_regression(n_samples=50,
-                                   n_features=5,
-                                   n_targets=1,
-                                   random_state=123)
+sus = us.squeeze(dim=2)
+# print(sus.shape)
+sus = sus.squeeze(dim=1)
+# print(sus.shape)
 
-# print(regress)
+susview = sus.view((-1, 10))
+# print(susview.shape)
 
-# load into torch
+base = torch.ones((5, 5))
+# print(base)
 
-x_data, y_data = regress
+make_triu = torch.triu(base)
+# print(make_triu)
 
+masked = torch.masked_fill(torch.zeros(5, 5), make_triu == 0, torch.tensor(67))
+# print(masked)
+
+# lets get an equation
+"""
+5x + 2y + 87c = 6
+8x + 32y - 25c = 82
+756x + 15y + 32c = 75
+"""
+
+# make a stack
+t1 = torch.tensor([5, 2, 87], dtype=torch.float32)
+r1 = torch.tensor([8, 32, -27], dtype=torch.float32)
+t2 = torch.tensor([756, 15, 327], dtype=torch.float32)
+
+X = torch.stack((t1, r1, t2))
+
+Y = torch.tensor([6, 82, 76], dtype=torch.float32)
+Y = Y.view((3, 1))
+# print(Y)
+
+# print(X)
+
+# print(X * Y)
+
+sm = F.softmax(X, dim=1)
+# print(sm)
+
+x_data, y_data = datasets.make_regression(n_samples=3, n_features=3, 
+                                          noise= 25, random_state=123)
 x_torch = torch.from_numpy(x_data.astype(np.float32))
 y_torch = torch.from_numpy(y_data.astype(np.float32))
-
-# print(x_torch.shape)  # 50, 5
-# print(y_torch.shape)  # 50, 2
-
-# break it into batches
-x_batch = x_torch.view(10, 5, 5)
-y_batch = y_torch.view(10, 5, -1)
-# print(y_batch.shape)
-# print(x_batch.shape)
-
-# print(y_batch[0])
-
-# print(datasets.get_data_home())
-
-# mul_x_y = x_batch[0] * y_batch[0]  # will error out
-
-# print(mul_x_y)
-# what should be the weight shape? unable to visualise 
-# as there is no practice 
-
-linear = nn.Linear(in_features=5, out_features=1)
-# print(linear.weight.shape)  # shape of 2r 5c 
-# print(linear.weight)  # shape of 2r 5c 
-
-# how feed the data to model
-
-batch_lin0 = linear(x_batch[0])
-
-# print(batch_lin0.shape)  # expecting 5r 2c output
-
-sx = F.softmax(batch_lin0, dim=0)
-
-# print(sx.shape)
-# print(sx)
-
-criterion = torch.nn.MSELoss()
-
-# loss = criterion(sx, y_batch[0])
-
-# print(loss)
-# loss.backward()
-
-optimizer = torch.optim.SGD(linear.parameters(), lr=0.01)
-# optimizer.step()
-# optimizer.zero_grad()
-# print(linear.weight)
-
-# epoch = 50
-# for epo in range(epoch):
-    # for ind, bt in enumerate(x_batch):
-        # y_p_bt = linear(bt)
-        # loss_bt = criterion(y_p_bt, y_batch[ind])
-        # loss_bt.backward()
-        # optimizer.step()
-        # optimizer.zero_grad()
-    # print(f"loss: {loss_bt.item():.3f}")
+y_torch = y_torch.view((x_torch.shape[0], 1))
+print(x_torch.shape)
+print(y_torch.shape)
 
 
-data = datasets.load_digits()
-# print(data.keys())
-data = data['data']
-# target = data['target']
+class LinReg(nn.Module):
+    def __init__(self, inval, outval):
+        super().__init__()
+        self.lin = nn.Linear(inval, outval)
+
+    def forward(self, data):
+        return self.lin(data)
 
 
-class ToTensor:
-    def __call__(self, data_points):
-        print(data_points)
-        data = data_points[0]
-        target = data_points[1]
-        return torch.from_numpy(data.astype(np.float32)), torch.tensor(target, 
-                                                                       dtype=torch.float32)
+model = LinReg(inval=3, outval=1)
+
+epoch = 100
+learning = 0.01
+
+criterion = nn.MSELoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=learning)
+
+for step in range(epoch):
+    # forward
+    y_pred = model(x_torch)
+    # backward
+    loss = criterion(y_pred, y_torch)
+    # update weights
+    loss.backward()
+    optimizer.step()
+    optimizer.zero_grad()
+    # if step % 5 == 0:
+        # print(f"step: {step} and loss: {loss.item():.4f}")
+
+# print(model.parameters())
+
+# builiding the dataloader for bigger data set
 
 
-class MulTransform:
-    def __init__(self, factor):
-        self.factor = factor
+class RegressionSet(Dataset):
+    def __init__(self, regression_data):
+        self.x = torch.from_numpy(regression_data[0].astype(np.float32))
+        self.y = torch.from_numpy(regression_data[1].astype(np.float32))
+        self.samples = self.x.shape[0]
 
-    def __call__(self, samples):
-        inputs, targets = samples
-        inputs *= self.factor
-        return inputs, targets
-
-
-class DigitDataset(Dataset):
-    def __init__(self, transform=None) -> None:
-        self.data_set = datasets.load_digits()
-        self.data = self.data_set['data']
-        self.target = self.data_set['target']
-        self.n_samples = self.data.shape[0]
-        self.transform = transform
-
-    def __getitem__(self, index):
-        sample = self.data[index], self.target[index]
-        if self.transform:
-            sample = self.transform(sample)
-
-        return sample
+    def __getitem__(self, index) -> Any:
+        return self.x[index], self.y[index]
 
     def __len__(self):
-        return self.n_samples
+        return self.samples
 
-dd = DigitDataset(transform=ToTensor())
 
-print(dd[0])
+regr_data = datasets.make_regression(n_samples=50,
+                                     n_features=3,
+                                     noise=25,
+                                     random_state=157)
+
+reg_ds = RegressionSet(regr_data)
+
+
+# print(reg_ds[0])
+
+
+reg_dl = DataLoader(reg_ds, 3, True,)
+
+data_iterator = iter(reg_dl)
+
+# print(next(data_iterator))
+
+criterion = nn.MSELoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=learning)
+
+for step in range(epoch):
+    # loop over the batches and send through model
+    for ind, batch in enumerate(reg_dl):
+        print(f"send in batch: {ind}")
+        # print(batch[0].shape)
+        # print(batch[1].shape)
+        # forward
+        y_batch = model(batch[0])
+        y = batch[1].view(batch[0].shape[0], 1)
+        # backward
+        loss = criterion(y_batch, y)
+
+        # update weights
+        loss.backward()
+        optimizer.step()
+        optimizer.zero_grad()
+    
+    print(f"Step is: {step} and loss is: {loss.item():.4f}")
