@@ -6,7 +6,7 @@ from torch.utils.data import Dataset, DataLoader
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # print(device)
 # zeros, ones, rand, empty, randint, linspace, eye, 
-# multinomial, cat, arange, unsqueeze(learn), masked_fill 
+# multinomial(has math involved, understand), cat, arange, unsqueeze(learn), masked_fill 
 # stack, triu, tril, transpose, softmax, 
 # Embedding, Linear functions, data loading
 # view, broadcasting semantics, transforms
@@ -65,6 +65,12 @@ samples = torch.multinomial(input=j, num_samples=10, replacement=True)
 # draws samples with 0, 1, 2 
 # print(samples)
 
+m2 = torch.tensor([[5, 0, 1,],
+                  [8, 10, 9],
+                  [0.1, 0.7, 0.9]], dtype=torch.float32)
+
+p2 = torch.multinomial(m2, 5, True)  # 3 rows and 5 cols
+# print(p2)
 k = torch.tensor([1, 2, 3, 4, 5])
 l = torch.tensor([5])  # torch.Size([1])
 # print(l.shape)
@@ -92,6 +98,18 @@ s4 = torch.arange(4, 9)
 s5 = torch.stack((s1, s2, s3, s4))
 # print(s5.shape)
 # print(s5)
+
+s1 = torch.rand(1, 3)
+s2 = torch.rand(1, 3)
+s3 = torch.rand(1, 3)
+
+s4 = torch.stack((s1, s2, s3), dim=0)  # 3 row * 1 row and 3 cols
+
+# print(s4.shape)  # 3 * 1 row and 3 cols tensor
+
+s5 = torch.stack((s1, s3, s2), dim=1)  # 1 row * 3 row and 3 cols
+
+# print(s5.shape)
 
 tl = torch.tril(torch.ones(3, 3) * 5)  # scalar int multiplication works
 # print(tl)
@@ -153,6 +171,12 @@ embedding_dim = 6
 
 r_in = nn.Embedding(num_embeddings=vocab_size,
                      embedding_dim=embedding_dim)
+# Facing IndexError index out of range error.
+# print(emb.weight)
+input = torch.LongTensor([12, 8, 5, 0])
+# The values used to embed must be less than num_embeddings
+
+# creates a dictionary??
 data_ind = torch.tensor([1, 5, 6, 8])
 e_out = r_in(data_ind)
 print(e_out)
@@ -195,8 +219,8 @@ d = torch.tensor([[1, 72, 68, 74, 67, 57, 72,  0, 73],
 print(b.view(2 * 8))
 print(d.view(2 * 9))
 
-ce = F.cross_entropy(b.view(2*8), d.view(2*9))
-print(ce)
+# ce = F.cross_entropy(b.view(2*8), d.view(2*9))
+#print(ce)
 
 # some additional home work on cat and stack
 part1 = torch.rand(size=(2, 2))  # 2 row / 2 col matrix
@@ -204,7 +228,7 @@ part2 = torch.rand(size=(2, 1))  # 2 row 1 col matrix
 part3 = torch.rand(size=(1, 2))  # 1 row 2 col matrix
 
 cat2 = torch.cat((part1, part3))  # will go through 
-print(cat2)
+# print(cat2)
 # cat1 = torch.cat((part1, part2))  # will inform the expected dimensions are not present
 
 part4 = torch.rand((4, 3))
@@ -212,7 +236,7 @@ part5 = torch.randint(high=100, low=10, size=(4, 3))
 
 partstack = torch.stack([part4, part5])
 
-print(partstack.shape)  # 2 tensors of 4 rows and 3 cols 
+# print(partstack.shape)  # 2 tensors of 4 rows and 3 cols 
 
 # partstackx0 = torch.stack(part4, part5)  # will throw syntax-error 
 
@@ -227,14 +251,14 @@ catparts_dim1 = torch.cat((part4, part5), dim=1)
 
 part9 = torch.linspace(start=10, end=20, steps=30)  # steps is required args, and ensure it is more than 1, else it will form a Size[1] tensor
 
-print(part9.shape)
+# print(part9.shape)
 
 # print(part9.view(size=(10,3)))
 # print(part9.view(size=(5,6)))
 # print(part9.view(size=(3,10)))
 # print(part9.view(size=(4,10)))  # RuntimeError: shape '[4, 10]' is invalid for input of size 30
 
-print(part9.view(size=(-1, 3)))
+# print(part9.view(size=(-1, 3)))
 # print(part9.view(size=(-1, 4)))  # will be invalid
 
 class WineDataset(Dataset):
@@ -254,7 +278,7 @@ wine_ds = WineDataset(x_data=x_data, y_data=y_data)
 winedataloader = DataLoader(wine_ds, shuffle=True, batch_size=3)
 
 batch1 = next(iter(winedataloader))
-print(batch1)  # List of tensor objects
+# print(batch1)  # List of tensor objects
 
 # need to include the transforms 
 
@@ -276,3 +300,45 @@ b = torch.rand((3, 1))
 # 1st trailing dimension: both have size 1
 # 2nd trailing dimension: a size == b size
 # 3rd trailing dimension: b dimension doesn't exist 
+
+# When it comes to Matrix Multiplication, there are following pairs one has to identify
+# vector * vector, matrix * vector, batched mat * vector(bc) 
+# batched matrix * batched matrix, batched matrix * broadcasted matrix
+# vector X vector is acceptable
+tensor1= torch.rand(3)  # 1 * 3 cols
+tensor2= torch.rand(3)  # 1 * 3 cols
+
+# print(tensor1)
+# print(tensor2)
+
+tm1 = torch.matmul(tensor1, tensor2)
+# print(tm1)  # scalar
+
+# matrix X vector is acceptable
+tensor3= torch.rand(3, 4)  # 3 * 4 cols
+tensor4= torch.rand(4)  # 4 cols
+
+tm2 = torch.matmul(tensor3, tensor4)
+# print(tm2)  # 1 row 3 col
+
+# batched matrix with broadcasted vector
+tensor5 = torch.rand(10, 3, 4)
+tensor6 = torch.rand(4)
+
+tm3 = torch.matmul(tensor5, tensor6)
+print(tm3)
+
+# batched matrix with batched matrix
+tensor7 = torch.rand(10, 3, 4)
+tensor8 = torch.rand(10, 4, 5)
+
+tm6 = torch.matmul(tensor7, tensor8)
+
+print(tm6)
+
+# batched matrix with broadcasted matrix
+tensor9 = torch.rand(10, 3, 4)
+tensorh = torch.rand(4, 5)
+
+mt6 = torch.matmul(tensor9, tensorh)
+print(mt6)
