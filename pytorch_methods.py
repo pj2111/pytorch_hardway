@@ -10,6 +10,10 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # stack, triu, tril, transpose, softmax, 
 # Embedding, Linear functions, data loading
 # view, broadcasting semantics, transforms
+
+y6 = torch.tensor([1])
+print(y6.shape)  # Size([1])
+
 a = torch.zeros(1, 2)  # 1 row and 2 cols 
 # print(a)
 
@@ -58,6 +62,17 @@ nm = np.multiply(h, i)
 # embeddings, torch.stack, torch.multinomial, torch.tril, torch.triu
 # input.T / input.transpose, nn.Linear, torch.cat, F.softmax
 # unsqueeze and squeeze ( so squeeze(-1) would remove the last dimension and unsqueeze(-1) 
+ys = torch.rand(3)  # torch.Size([3])
+# tensor([0.3803, 0.9533, 0.1612])
+# Size([3]) is single tensor with 3 elements, no rows or cols
+print(ys.unsqueeze(dim=0))  # Size(1, 3) is single row with 3 cols 
+# tensor([[0.3803, 0.9533, 0.1612]])
+print(ys.unsqueeze(dim=1))  # Size(3, 1) is 3 rows with single col
+"""
+tensor([[0.0418],
+        [0.9801],
+        [0.9711]])
+"""
 # would add a new dimension after the current last.)
 # (show all the examples of functions/methods with pytorch docs)
 j = torch.tensor([0.2, 0.3, 0.5])
@@ -109,8 +124,10 @@ s4 = torch.stack((s1, s2, s3), dim=0)  # 3 row * 1 row and 3 cols
 
 s5 = torch.stack((s1, s3, s2), dim=1)  # 1 row * 3 row and 3 cols
 
-# print(s5.shape)
+"stack batches the data, while cat concatenates the data"
 
+# print(s5.shape)
+# diagonal in triu and tril tell where the diagonal "is" inside the matrix
 tl = torch.tril(torch.ones(3, 3) * 5)  # scalar int multiplication works
 # print(tl)
 tu = torch.triu(torch.ones(3, 3) * torch.tensor([5]))  # What happens when 
@@ -304,9 +321,16 @@ b = torch.rand((3, 1))
 # When it comes to Matrix Multiplication, there are following pairs one has to identify
 # vector * vector, matrix * vector, batched mat * vector(bc) 
 # batched matrix * batched matrix, batched matrix * broadcasted matrix
-# vector X vector is acceptable
-tensor1= torch.rand(3)  # 1 * 3 cols
-tensor2= torch.rand(3)  # 1 * 3 cols
+# A vector is of shape 1 row n col
+
+# vector X vector is acceptable, and return dot product
+tensor2 = torch.rand(3)  # Size([3]) 
+
+tensor1 = torch.tensor([5, 6, 8])  # Size([3])
+
+matrix = torch.tensor([[1, 2, 4],
+                      [5, 6, 8],
+                      [9, 6, 5]])  # Size([3, 3])
 
 # print(tensor1)
 # print(tensor2)
@@ -314,7 +338,7 @@ tensor2= torch.rand(3)  # 1 * 3 cols
 tm1 = torch.matmul(tensor1, tensor2)
 # print(tm1)  # scalar
 
-# matrix X vector is acceptable
+# matrix X vector is acceptable and returns a tensor broadcast
 tensor3= torch.rand(3, 4)  # 3 * 4 cols
 tensor4= torch.rand(4)  # 4 cols
 
@@ -322,16 +346,22 @@ tm2 = torch.matmul(tensor3, tensor4)
 # print(tm2)  # 1 row 3 col
 
 # batched matrix with broadcasted vector
-tensor5 = torch.rand(10, 3, 4)
+tensor5 = torch.rand(3, 3, 4)
+tensor_b = torch.tensor([[[1, 2, 4, 5], [5, 6, 8, 9], [5, 6, 4, 2]],
+                         [[1, 9, 0, 8], [7, 2, 4, 5], [9, 8, 6, 2]],
+                         [[7, 6, 2, 3], [7, 6, 3, 5], [6, 7, 3, 4]]
+                         ])
 tensor6 = torch.rand(4)
 
 tm3 = torch.matmul(tensor5, tensor6)
 print(tm3)
 
 # batched matrix with batched matrix
-tensor7 = torch.rand(10, 3, 4)
-tensor8 = torch.rand(10, 4, 5)
-
+tensor7 = torch.rand(3, 4, 3)
+tensor8 = torch.tensor([[[1, 2, 4, 5], [5, 6, 8, 9], [5, 6, 4, 2]],
+                         [[1, 9, 0, 8], [7, 2, 4, 5], [9, 8, 6, 2]],
+                         [[7, 6, 2, 3], [7, 6, 3, 5], [6, 7, 3, 4]]
+                         ], dtype=torch.float32)
 tm6 = torch.matmul(tensor7, tensor8)
 
 print(tm6)
