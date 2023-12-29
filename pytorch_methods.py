@@ -12,7 +12,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # view, broadcasting semantics, transforms
 
 y6 = torch.tensor([1])
-print(y6.shape)  # Size([1])
+# print(y6.shape)  # Size([1])
 
 a = torch.zeros(1, 2)  # 1 row and 2 cols 
 # print(a)
@@ -65,9 +65,9 @@ nm = np.multiply(h, i)
 ys = torch.rand(3)  # torch.Size([3])
 # tensor([0.3803, 0.9533, 0.1612])
 # Size([3]) is single tensor with 3 elements, no rows or cols
-print(ys.unsqueeze(dim=0))  # Size(1, 3) is single row with 3 cols 
+# print(ys.unsqueeze(dim=0))  # Size(1, 3) is single row with 3 cols 
 # tensor([[0.3803, 0.9533, 0.1612]])
-print(ys.unsqueeze(dim=1))  # Size(3, 1) is 3 rows with single col
+# print(ys.unsqueeze(dim=1))  # Size(3, 1) is 3 rows with single col
 """
 tensor([[0.0418],
         [0.9801],
@@ -180,7 +180,7 @@ lin2 = nn.Linear(1, 1, bias=False)
 
 # How softmax works?
 s_out = F.softmax(ten1)
-print(s_out)
+# print(s_out)
 
 # How embedding works 
 vocab_size = 80
@@ -196,8 +196,8 @@ input = torch.LongTensor([12, 8, 5, 0])
 # creates a dictionary??
 data_ind = torch.tensor([1, 5, 6, 8])
 e_out = r_in(data_ind)
-print(e_out)
-print(e_out.shape)
+# print(e_out)
+# print(e_out.shape)
 """
 tensor([[-0.5251, -2.2980, -1.2629, -0.2184, -0.3236, -1.1250],
         [-2.0372, -0.7762,  1.1529, -1.7969,  0.3080, -0.4566],
@@ -233,11 +233,11 @@ d = torch.tensor([[1, 72, 68, 74, 67, 57, 72,  0, 73],
 # print(b.shape)
 # print(d.shape)
 
-print(b.view(2 * 8))
-print(d.view(2 * 9))
+# print(b.view(2 * 8))
+# print(d.view(2 * 9))
 
 # ce = F.cross_entropy(b.view(2*8), d.view(2*9))
-#print(ce)
+## print(ce)
 
 # some additional home work on cat and stack
 part1 = torch.rand(size=(2, 2))  # 2 row / 2 col matrix
@@ -291,10 +291,10 @@ class WineDataset(Dataset):
     def __len__(self):
         return self.n_samples
 
-wine_ds = WineDataset(x_data=x_data, y_data=y_data)
-winedataloader = DataLoader(wine_ds, shuffle=True, batch_size=3)
+# wine_ds = WineDataset(x_data=x_data, y_data=y_data)
+# winedataloader = DataLoader(wine_ds, shuffle=True, batch_size=3)
 
-batch1 = next(iter(winedataloader))
+# batch1 = next(iter(winedataloader))
 # print(batch1)  # List of tensor objects
 
 # need to include the transforms 
@@ -326,7 +326,7 @@ b = torch.rand((3, 1))
 # vector X vector is acceptable, and return dot product
 tensor2 = torch.rand(3)  # Size([3]) 
 
-tensor1 = torch.tensor([5, 6, 8])  # Size([3])
+tensor1 = torch.tensor([5, 6, 8], dtype=torch.float32)  # Size([3])
 
 matrix = torch.tensor([[1, 2, 4],
                       [5, 6, 8],
@@ -339,8 +339,8 @@ tm1 = torch.matmul(tensor1, tensor2)
 # print(tm1)  # scalar
 
 # matrix X vector is acceptable and returns a tensor broadcast
-tensor3= torch.rand(3, 4)  # 3 * 4 cols
-tensor4= torch.rand(4)  # 4 cols
+tensor3 = torch.rand(3, 4)  # 3 * 4 cols
+tensor4 = torch.rand(4)  # 4 cols
 
 tm2 = torch.matmul(tensor3, tensor4)
 # print(tm2)  # 1 row 3 col
@@ -354,7 +354,7 @@ tensor_b = torch.tensor([[[1, 2, 4, 5], [5, 6, 8, 9], [5, 6, 4, 2]],
 tensor6 = torch.rand(4)
 
 tm3 = torch.matmul(tensor5, tensor6)
-print(tm3)
+# print(tm3)
 
 # batched matrix with batched matrix
 tensor7 = torch.rand(3, 4, 3)
@@ -364,11 +364,140 @@ tensor8 = torch.tensor([[[1, 2, 4, 5], [5, 6, 8, 9], [5, 6, 4, 2]],
                          ], dtype=torch.float32)
 tm6 = torch.matmul(tensor7, tensor8)
 
-print(tm6)
+# print(tm6)
 
 # batched matrix with broadcasted matrix
 tensor9 = torch.rand(10, 3, 4)
 tensorh = torch.rand(4, 5)
 
 mt6 = torch.matmul(tensor9, tensorh)
-print(mt6)
+# print(mt6)
+
+# Network layers learning
+# flatten the tensor, given a nD tensor make them tensor that contains 
+# multiple 1D tensors with the number of cols increased proportionaly
+flatten = nn.Flatten(start_dim=1, end_dim=-1)
+# create a 3 by 4 tensor
+test_data = torch.tensor([[3, 5, 7, 9,],
+                          [7, 6, 12, 3],
+                          [3, 43, 21, 78]], dtype=torch.float32)
+# print(test_data.shape)
+# print(flatten(test_data).shape)  # Size([3, 4])
+
+test_data2 = torch.rand(5, 28, 28)
+print(flatten(test_data2).shape)  # Size([5, 784])
+
+l1 = nn.Linear(4, 2)
+hid1 = l1(test_data)
+# print(hid1.shape)  # Size([5, 20])
+
+r1 = nn.ReLU()
+hid2 = nn.ReLU()(hid1)
+# print(hid2)
+# move the data through each layer inside sequentially
+sequential = nn.Sequential(
+    flatten,
+    l1,
+    r1,
+    nn.Linear(2, 1)
+)
+# learn from 4 features, and provide 1 output features
+
+fin = sequential(test_data)
+
+# print(fin)
+# print(fin.shape)  # Size([3, 1])
+
+seq2 = nn.Sequential(
+    flatten,
+    nn.Linear(28 * 28, 512),
+    r1,
+    nn.Linear(512, 512),
+    r1,
+    nn.Linear(512, 10)
+)
+
+fin2 = seq2(test_data2)
+
+print(fin2.shape)
+
+softmax = nn.Softmax(dim=1) # softmax the columns
+
+pred_prob = softmax(fin2)
+
+# print(pred_prob)
+
+# Getting at the model parameter
+
+for name, params in seq2.named_parameters():
+    print(f'Layer: {name} | size: {params.size()} | vals : {params[:2]}')
+
+# Basic model (need to practice)
+x = torch.ones(5)
+y = torch.zeros(3)
+
+w = torch.randn(5, 3, requires_grad=True)
+b = torch.randn(3, requires_grad=True)
+
+z = torch.matmul(x, w) + b
+
+loss = F.binary_cross_entropy_with_logits(z, y)
+print(loss)
+
+print(f"The z grad fn: {z.grad_fn}")
+print(f"The loss grad fn: {loss.grad_fn}")
+
+with torch.no_grad():
+    a = torch.matmul(x, w) + b
+print(z.requires_grad)  # returns False
+
+f = torch.matmul(x, w) + b
+f_det = f.detach()
+print(f_det.requires_grad)  # returns false
+
+# going hyper with the below functions and parameters
+
+learning_rate = 1e-3
+batch_size = 64
+epochs = 5
+
+# supporting functions
+loss_fn = nn.CrossEntropyLoss()   # softmax is implemented in the class already
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+
+
+def train_loop(dataloader, model, loss_fn, optimizer):
+    size = len(dataloader.dataset)
+
+    model.train()
+
+    for batch, (X, y) in enumerate(dataloader):
+        # forward
+        pred = model(X)
+        loss = loss_fn(pred, y)
+        # backward
+        loss.backward()
+        optimizer.step()
+        optimizer.zero_grad()
+
+        if batch % 100 == 0:
+            loss, current = loss.item(), (batch + 1) * len(X)
+            print(f"loss: {loss:>7f} [{current:>5d} / {size:>5d}]")
+
+
+def test_loop(dataloader, model, loss_fn):
+    model.eval()
+    size = len(dataloader.dataset)
+    num_batches = len(dataloader)
+    test_loss, correct = 0, 0
+
+    with torch.no_grad():
+        for x, y in dataloader:
+            pred = model(x)
+            test_loss += loss_fn(pred, y).item()
+            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+
+    test_loss /= num_batches
+    correct /= size
+
+    print(f"Test Error: \n Accuracy: {(100 * correct):>1f} avg_loss: {test_loss:>8f}")
