@@ -383,6 +383,14 @@ test_data = torch.tensor([[3, 5, 7, 9,],
                           [3, 43, 21, 78]], dtype=torch.float32)
 # print(test_data.shape)
 # print(flatten(test_data).shape)  # Size([3, 4])
+# based on the pattern tested with various dimensions of tensors
+# the intuition point is the start-dim that tells from which 
+# dimension tensor has to be flattened. 
+
+f = torch.rand([2, 3, 3, 4])
+print(f.size())  # Size([2, 3, 3])
+i = nn.Flatten(start_dim=2, end_dim=-1)
+print(i(f).size())  # Size([18])
 
 test_data2 = torch.rand(5, 28, 28)
 print(flatten(test_data2).shape)  # Size([5, 784])
@@ -463,8 +471,10 @@ epochs = 5
 
 # supporting functions
 loss_fn = nn.CrossEntropyLoss()   # softmax is implemented in the class already
+
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
+# print(model.weight.grad) The grad is wht get updated with learning rate.
 
 def train_loop(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
@@ -501,3 +511,57 @@ def test_loop(dataloader, model, loss_fn):
     correct /= size
 
     print(f"Test Error: \n Accuracy: {(100 * correct):>1f} avg_loss: {test_loss:>8f}")
+
+n = nn.Linear(in_features=3, out_features=1)
+dn = nn.Bilinear(in1_features=3, in2_features=3, out_features=2)
+
+# for x in n.parameters():
+    # print(x)
+
+# for x in n.named_parameters():
+    # print(x)
+
+# for name, param in dn.named_parameters():
+    # print(name, param)
+
+# do = nn.Dropout(p=0.5)
+# print(do(input))
+
+
+# During training, randomly zeroes some of the elements of the input tensor with probability p 
+# using samples from a Bernoulli distribution. Each channel will be zeroed 
+# out independently on every forward call.
+
+# This has proven to be an effective technique for regularization 
+# and preventing the co-adaptation of neurons
+
+d1d = nn.Dropout1d(p=0.4, inplace=True)
+d2d = nn.Dropout2d(p=0.4, inplace=True)
+
+input3d = torch.ones([3, 3, 3])
+input1d = torch.ones([3,])
+input2d = torch.ones([3, 3])
+
+print(input)
+# print(d1d(input))
+print(d2d(input2d))  # raises a warning informing not to use dropout2D. Need to investigate
+print(d3d(input3d))  # raises a warning informing not to use dropout2D. Need to investigate
+
+
+my_tensor = torch.rand(1, 6, 6)
+print(my_tensor)
+
+maxpool_layer = torch.nn.MaxPool2d(3)  # reduce a tensor by combining cells, and assigning the maximum value of the input cells to the output cell
+print(maxpool_layer(my_tensor))
+
+my_tensor = torch.rand(1, 4, 4) * 20 + 5
+print(my_tensor)
+
+print(my_tensor.mean())
+
+norm_layer = torch.nn.BatchNorm1d(4)
+#  Centering and scaling the intermediate tensors has a number of beneficial effects, such as letting you use higher learning rates without exploding/vanishing gradients.
+normed_tensor = norm_layer(my_tensor)
+print(normed_tensor)
+
+print(normed_tensor.mean())

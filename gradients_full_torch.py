@@ -54,8 +54,8 @@ model = LinearRegression(n_features, n_features)
 loss = nn.MSELoss()
 optim = torch.optim.SGD(model.parameters(),
                         lr=0.01)
-print(f"prediction before training: f(5)= {model(x_test).item():.3f}")
 
+print(f"prediction before training: f(5)= {model(x_test).item():.3f}")
 # training
 learning_rate = 0.01
 n_iters = 30
