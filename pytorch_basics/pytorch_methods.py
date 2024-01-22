@@ -34,6 +34,27 @@ e = torch.randint(low=10, high=100,
                   size=(3, 2))  # 3 row and 2 cols random number between 10 and 100
 # print(e)
 
+# Boolean in tensor work a bit differently
+n = torch.tensor(5.7886)
+print(n < 0)  # tensor(False)
+
+(n < 0).long()  # tensor(0)
+
+(n > 0).long()  # tensor(1)
+
+# how where is used
+torch.where(torch.tensor(False), torch.tensor(0), torch.tensor(1))  # tensor(1)
+
+# *_like methods in pytorch, uses the given variable as blue-print 
+
+n = torch.tensor([5.7, 89, 86])
+
+torch.zeros_like(n)  # tensor([0., 0., 0.])
+
+torch.ones_like(n)  # tensor([1., 1., 1.])
+
+torch.rand_like(n)  # tensor([0.5495, 0.0423, 0.4785])
+
 # linspace
 f = torch.linspace(start=0, end=13, steps=4, dtype=torch.int32)  # linear space between 0 to 7 with steps of 3
 # can control the type of the output without worrying about type error
