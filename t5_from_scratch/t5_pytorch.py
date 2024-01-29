@@ -417,5 +417,6 @@ class T5(nn.Module):
         x = self.decoder(tgt, x,
                          mask=mask,
                          context_mask=context_mask)
+        # this looks a bit different, why the target is provided to the decoder?
         x = self.to_logits(x)
         return x
