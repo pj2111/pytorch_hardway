@@ -108,6 +108,7 @@ for epoch in range(num_epochs):
             running_corrects = 0
     # writer.close()
     # sys.exit()
+# Labels seems to be wrongly used below. scroll down to alternate implementation
 labels = []
 predictions = []
 with torch.no_grad():
@@ -139,3 +140,18 @@ with torch.no_grad():
         labels_i = labels == i
         preds_i = preds[:, i]
         writer.add_pr_curve(str(i), labels_i, preds_i)
+
+# The following test loop seems to be working 
+with torch.no_grad():
+    n_correct = 0
+    n_samples =0
+    for images, labels in test_loader:
+        images = images.reshape(-1,28*28)
+        outputs = model(images)
+        # value, index
+        _, predictions = torch.max(outputs, 1)
+        n_samples += labels.shape[0]
+        n_correct = (predictions == labels).sum().item()
+        
+    acc = 100 * n_correct / n_samples
+    print(f"accuracy = {acc}")
